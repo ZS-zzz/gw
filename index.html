@@ -28,18 +28,18 @@
         :root {
             --primary-blue: #1e88e5;
             --light-blue: #42a5f5;
-            --text-dark: #333333;
-            --text-soft: #5a6672;
-            --online: #4caf50;
-            --offline: #f44336;
-            --starting: #ff9800;
-            --card-bg: rgba(255, 255, 255, 0.08);
+            --text-dark: #1f2c38;          /* 加深正文颜色，提升亮色模式可读性 */
+            --text-soft: #4c5a67;          /* 次级文本同步加深 */
+            --online: #2e9e4f;
+            --offline: #d93a2b;
+            --starting: #e08600;
+            --card-bg: rgba(255, 255, 255, 0.34);   /* 略提高卡片底色，弱化背景图干扰 */
             --card-bg-solid: #fafcff;
-            --card-bg-hover: rgba(255, 255, 255, 0.18);
+            --card-bg-hover: rgba(255, 255, 255, 0.55);
             --bg-start: #f5f9ff;
             --bg-end: #e3f2fd;
-            --border-light: rgba(255, 255, 255, 0.30);
-            --border-light-hover: rgba(255, 255, 255, 0.60);
+            --border-light: rgba(255, 255, 255, 0.55);
+            --border-light-hover: rgba(255, 255, 255, 0.85);
             --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.04);
             --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.16), 0 8px 24px rgba(0, 0, 0, 0.06);
             --shadow-hover: 0 20px 64px rgba(0, 0, 0, 0.20), 0 8px 28px rgba(0, 0, 0, 0.08);
@@ -74,9 +74,10 @@
             --card-bg-hover: rgba(0, 0, 0, 0.52);
             --border-light: rgba(255, 255, 255, 0.15);
             --border-light-hover: rgba(255, 255, 255, 0.35);
-            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.8), 0 8px 24px rgba(0, 0, 0, 0.4);
-            --shadow-hover: 0 20px 64px rgba(0, 0, 0, 0.9), 0 8px 28px rgba(0, 0, 0, 0.5);
+            /* 深色模式阴影大幅收敛，避免“黑块”感 */
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.28), 0 1px 4px rgba(0, 0, 0, 0.18);
+            --shadow-lg: 0 8px 26px rgba(0, 0, 0, 0.34), 0 3px 12px rgba(0, 0, 0, 0.20);
+            --shadow-hover: 0 10px 32px rgba(0, 0, 0, 0.40), 0 4px 14px rgba(0, 0, 0, 0.24);
             --bg-start: #121f2a;
             --bg-end: #1a2c36;
         }
@@ -137,7 +138,8 @@
             content: '';
             position: fixed;
             inset: 0;
-            background: rgba(245, 249, 255, 0.45);
+            /* 亮色模式提高遮罩不透明度，让背景图不再与文字抢对比度 */
+            background: rgba(248, 251, 255, 0.62);
             -webkit-backdrop-filter: blur(2px);
             backdrop-filter: blur(2px);
             z-index: -1;
@@ -219,7 +221,7 @@
         .loader-status {
             font-size: 0.82rem;
             color: var(--text-dark);
-            opacity: 0.55;
+            opacity: 0.72;
             letter-spacing: 1px;
             font-weight: 500;
             min-height: 1em;
@@ -315,7 +317,7 @@
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
-            color: #757575;
+            color: #4c5a67;                 /* 亮色模式加深，提升可读性 */
             white-space: nowrap;
             text-decoration: none;
             display: inline-block;
@@ -377,7 +379,7 @@
         .icon-btn {
             background: transparent; border: none;
             padding: 6px 10px; border-radius: 40px;
-            font-size: 0.9rem; cursor: pointer; color: #757575;
+            font-size: 0.9rem; cursor: pointer; color: #4c5a67;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             transition: background 0.5s var(--ease-smooth),
@@ -410,8 +412,8 @@
         .addr-banner .fixed-addr {
             font-family: 'SFMono-Regular', Consolas, 'Courier New', monospace;
             font-weight: 800;
-            color: var(--primary-blue);
-            background: rgba(30, 136, 229, 0.12);
+            color: #1565c0;
+            background: rgba(30, 136, 229, 0.14);
             padding: 8px 24px;
             border-radius: 30px;
             letter-spacing: 1.5px;
@@ -422,9 +424,10 @@
             transition: transform 0.4s var(--ease-elastic), background 0.4s var(--ease-smooth);
             box-shadow: 0 4px 14px rgba(30, 136, 229, 0.10);
         }
+        :root.dark .addr-banner .fixed-addr { color: var(--primary-blue); }
         .addr-banner .fixed-addr:hover {
             transform: scale(1.02);
-            background: rgba(30, 136, 229, 0.18);
+            background: rgba(30, 136, 229, 0.20);
         }
         .addr-banner .copy-btn {
             background: var(--primary-blue); color: white;
@@ -487,10 +490,11 @@
             letter-spacing: 0.6px;
             padding: 6px 18px;
             border-radius: 40px;
-            background: rgba(30, 136, 229, 0.12);
-            color: var(--primary-blue);
-            border: 1px solid rgba(30, 136, 229, 0.18);
+            background: rgba(30, 136, 229, 0.14);
+            color: #1565c0;
+            border: 1px solid rgba(30, 136, 229, 0.22);
         }
+        :root.dark .time-greeting { color: var(--primary-blue); }
         .time-clock {
             position: relative;
             z-index: 1;
@@ -533,8 +537,8 @@
             margin-top: 6px;
             padding: 12px 22px;
             border-radius: 18px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px dashed rgba(30, 136, 229, 0.28);
+            background: rgba(255, 255, 255, 0.34);
+            border: 1px dashed rgba(30, 136, 229, 0.35);
             font-size: 0.92rem;
             font-style: italic;
             line-height: 1.65;
@@ -610,14 +614,13 @@
             45%  { transform: scale(1.06); }
             100% { transform: scale(1); }
         }
-        .sub-num { font-size: 1rem; color: #888; font-weight: 500; }
-        :root.dark .sub-num { color: #90a4ae; }
+        .sub-num { font-size: 1rem; color: var(--text-soft); font-weight: 500; }
         .motd-text {
             font-size: 0.95rem;
             word-break: break-word;
             line-height: 1.6;
             color: var(--text-dark);
-            opacity: 0.9;
+            opacity: 0.96;
             white-space: pre-wrap;
         }
         .status-dot {
@@ -752,13 +755,13 @@
             padding: 2px 10px; border-radius: 30px; font-weight: 700;
         }
         .announcement-card .a-date {
-            font-size: 0.78rem; opacity: 0.6; font-weight: 600;
+            font-size: 0.78rem; opacity: 0.75; font-weight: 600;
             white-space: nowrap;
         }
         .announcement-card .a-content {
             font-size: 0.95rem; line-height: 1.78;
             white-space: pre-wrap; word-break: break-word;
-            opacity: 0.9; margin-top: 8px;
+            opacity: 0.96; margin-top: 8px;
             color: var(--text-dark);
         }
         .announcement-card .a-tags {
@@ -768,6 +771,7 @@
             font-size: 0.72rem; padding: 2px 12px; border-radius: 30px;
             background: rgba(30, 136, 229, 0.12); color: var(--primary-blue); font-weight: 600;
         }
+        :root:not(.dark) .announcement-card .a-tag { color: #1565c0; }
 
         /* ========== 其他 ========== */
         .other-group + .other-group { margin-top: 30px; }
@@ -793,6 +797,7 @@
             padding: 2px 10px;
             border-radius: 30px;
         }
+        :root:not(.dark) .group-count { color: #1565c0; }
         .other-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -824,7 +829,7 @@
             width: 48px; height: 48px;
             display: flex; align-items: center; justify-content: center;
             border-radius: 14px;
-            background: rgba(30, 136, 229, 0.12);
+            background: rgba(30, 136, 229, 0.14);
             flex-shrink: 0;
         }
         .other-card .o-info { flex: 1; min-width: 0; }
@@ -839,14 +844,14 @@
             padding: 3px 10px;
             border-radius: 30px;
             background: rgba(255, 152, 0, 0.16);
-            color: #e65100;
+            color: #bf360c;
             white-space: nowrap;
             flex-shrink: 0;
         }
         :root.dark .other-card .o-amount { color: #ffb74d; background: rgba(255, 152, 0, 0.22); }
         .other-card .o-desc {
             font-size: 0.88rem; line-height: 1.6;
-            opacity: 0.85; word-break: break-word;
+            opacity: 0.94; word-break: break-word;
             color: var(--text-dark);
         }
         .other-card .o-footer {
@@ -860,6 +865,7 @@
             font-weight: 600; display: inline-flex;
             align-items: center; gap: 4px; text-decoration: none;
         }
+        :root:not(.dark) .other-card .o-link { color: #1565c0; }
         .other-card .o-link.disabled { opacity: 0.35; cursor: default; }
         .other-card .o-arrow {
             font-size: 1.1rem; opacity: 0.5;
@@ -910,7 +916,7 @@
         }
         .map-tip {
             font-size: 0.82rem;
-            opacity: 0.6;
+            opacity: 0.74;
             text-align: center;
             line-height: 1.6;
         }
@@ -918,7 +924,7 @@
         /* ========== 通用状态 ========== */
         .empty-state {
             text-align: center; padding: 50px 20px;
-            opacity: 0.65; font-size: 0.95rem;
+            opacity: 0.78; font-size: 0.95rem;
         }
         .empty-state .big-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
 
@@ -927,7 +933,7 @@
             display: none;
             background: rgba(255, 152, 0, 0.16);
             border: 1px solid rgba(255, 152, 0, 0.3);
-            color: #e65100;
+            color: #bf360c;
             padding: 10px 18px;
             border-radius: 16px;
             font-size: 0.85rem;
@@ -964,12 +970,12 @@
             display: inline-block;
             padding: 2px 4px;
         }
+        :root:not(.dark) .footer-line a { color: #1565c0; }
         .footer-line a:active { transform: scale(0.96); }
         @media (hover: hover) {
             .footer-line a:hover { text-decoration: underline; transform: translateY(-1px); }
         }
-        .footer-divider { color: #757575; opacity: 0.25; user-select: none; }
-        :root.dark .footer-divider { color: #b0bec5; }
+        .footer-divider { color: var(--text-soft); opacity: 0.55; user-select: none; }
 
         /* ========== 通用按钮 ========== */
         .btn {
@@ -1001,9 +1007,10 @@
             }
         }
         .btn-ghost {
-            background: transparent; color: var(--text-dark);
+            background: rgba(255, 255, 255, 0.42); color: var(--text-dark);
             border: 1px solid var(--border-light); box-shadow: none;
         }
+        :root.dark .btn-ghost { background: transparent; }
         @media (hover: hover) {
             .btn-ghost:hover { background: var(--card-bg-hover); color: var(--primary-blue); }
         }
@@ -1020,10 +1027,11 @@
             display: flex; align-items: center; gap: 10px;
         }
         .section-header .badge {
-            background: rgba(255, 255, 255, 0.10); padding: 4px 16px;
+            background: rgba(255, 255, 255, 0.42); padding: 4px 16px;
             border-radius: 40px; font-size: 0.8rem; font-weight: 600;
             border: 1px solid var(--border-light);
         }
+        :root.dark .section-header .badge { background: rgba(255, 255, 255, 0.10); }
 
         /* ========== Toast ========== */
         .toast-msg {
@@ -1302,7 +1310,7 @@
     <div id="firstVisitModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; align-items:flex-end; justify-content:center; visibility:hidden; transition: visibility 0.4s;">
         <div style="background:var(--card-bg-solid); border-radius:28px 28px 0 0; max-width:400px; width:100%; padding:24px; text-align:center; transform:translateY(100%); transition:transform 1s cubic-bezier(0.28, 0.98, 0.46, 1); box-shadow:var(--shadow-lg);">
             <h3 data-i18n="first_visit_title" style="margin-bottom:12px;">🎉 欢迎访问无名小服</h3>
-            <p data-i18n="first_visit_text" style="font-size:.9rem;line-height:1.7;opacity:.85;">欢迎访问无名小服官网 · QQ交流群：1083805903</p>
+            <p data-i18n="first_visit_text" style="font-size:.9rem;line-height:1.7;opacity:.9;">欢迎访问无名小服官网 · QQ交流群：1083805903</p>
             <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
                 <button id="firstVisitConfirm" class="btn" style="background:#ff9800;" type="button" data-i18n="first_visit_btn">我知道了</button>
             </div>
@@ -1972,7 +1980,7 @@
                     d.annContainer.innerHTML = '<div class="empty-state">' +
                         '<span class="big-icon">📭</span>' +
                         '<div style="font-weight:700; margin-bottom:6px;">' + escapeHtml(t('empty_ann_title')) + '</div>' +
-                        '<div style="font-size:0.85rem; opacity:0.7;">' + escapeHtml(t('empty_ann_desc')) + '</div>' +
+                        '<div style="font-size:0.85rem; opacity:0.8;">' + escapeHtml(t('empty_ann_desc')) + '</div>' +
                         '</div>';
                     return;
                 }
@@ -2028,7 +2036,7 @@
                     d.otherContainer.innerHTML = '<div class="empty-state">' +
                         '<span class="big-icon">📭</span>' +
                         '<div style="font-weight:700; margin-bottom:6px;">' + escapeHtml(t('empty_other_title')) + '</div>' +
-                        '<div style="font-size:0.85rem; opacity:0.7;">' + escapeHtml(t('empty_other_desc')) + '</div>' +
+                        '<div style="font-size:0.85rem; opacity:0.8;">' + escapeHtml(t('empty_other_desc')) + '</div>' +
                         '</div>';
                     return;
                 }
@@ -2230,14 +2238,22 @@
 
             /* ============================================================
              *  预加载
+             *  —— 公告与其他内容由 init() 提前发起（earlyAnnP / earlyOtherP），
+             *     这里直接复用同一个 Promise，避免重复请求。
              * ============================================================ */
-            function preloadAll() {
+            function preloadAll(earlyAnnP, earlyOtherP) {
                 var timeoutP = new Promise(function(resolve) { setTimeout(resolve, PRELOAD_TIMEOUT); });
                 var tasksP = Promise.all([
                     setRandomBackground().then(function() { setLoaderProgress(30, '背景完成'); }),
                     refreshMonitor(false).then(function() { setLoaderProgress(60, '状态完成'); }),
-                    loadAnnouncements().then(function() { renderAnnouncements(); setLoaderProgress(80, '公告完成'); }),
-                    loadOther().then(function() { renderOther(); setLoaderProgress(95, '内容完成'); })
+                    (earlyAnnP || loadAnnouncements()).then(function() {
+                        renderAnnouncements();
+                        setLoaderProgress(80, '公告完成');
+                    }),
+                    (earlyOtherP || loadOther()).then(function() {
+                        renderOther();
+                        setLoaderProgress(95, '内容完成');
+                    })
                 ]);
                 return Promise.race([tasksP, timeoutP]).then(function() {
                     renderAnnouncements();
@@ -2252,6 +2268,12 @@
             function init() {
                 currentLang = storage.get('lang') || 'zh';
                 applyI18n(currentLang);
+
+                /* ★ 提前并行拉取公告与其他内容：
+                   不等背景图、不等服务器状态，脚本一执行就发出请求，
+                   加载动画期间即可完成渲染。 */
+                var earlyAnnP = loadAnnouncements();
+                var earlyOtherP = loadOther();
 
                 var isDark = document.documentElement.classList.contains('dark');
                 d.darkBtn.textContent = isDark ? '☀️' : '🌙';
@@ -2285,7 +2307,7 @@
                 });
 
                 d.mapFrame.addEventListener('load', function() {
-                    var src = d.mapFrame.getAttribute('src') || '';
+
                     if (!src || src === 'about:blank') return;
                     clearTimeout(mapLoadingTimer);
                     d.mapLoading.classList.add('hidden');
@@ -2315,7 +2337,7 @@
 
                 startClock();
 
-                preloadAll().then(function() {
+                preloadAll(earlyAnnP, earlyOtherP).then(function() {
                     hideLoader();
                     setTimeout(firstVisit, 1200);
                     setInterval(function() { refreshMonitor(false); }, 30000);
