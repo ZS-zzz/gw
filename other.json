@@ -1,0 +1,83 @@
+{
+  "friends": {
+    "label": "🔗 友情链接",
+    "items": [
+      
+      {
+        "name": "byexie.top",
+        "url": "https://www.byexie.top/notice/",
+        "desc": "另一个MC服器官网"
+      },
+      {
+        "name": "Gname 域名",
+        "url": "https://gname.vip/zhcn/",
+        "desc": "🌐 服务器主地址来源"
+      },
+      {
+        "name": "InfinityFree",
+        "url": "https://www.infinityfree.com/",
+        "desc": "🏠 网站来源"
+      },
+      {
+        "name": "土豆云",
+        "url": "https://tudouai.cn/",
+        "desc": "☁️ 服务器来源"
+      },
+      {
+        "name": "DeepSeek",
+        "url": "https://chat.deepseek.com",
+        "desc": "做网站的❤"
+      }
+    ]
+  },
+  "team": {
+    "label": "👥 开发团队",
+    "items": [
+      {
+        "name": "ZS_zzz",
+        "desc": "腐竹",
+        "url": "#"
+      },
+         {
+        "name": "deepseek",
+        "desc": "前端后端开发",
+        "url": "#"
+      }
+    ]
+  },
+  "sponsor": {
+    "label": "☕ 赞助支持",
+    "items": [
+      {
+        "name": "ZS_zzz",
+        "amount": "1元",
+        "desc": "赞助支持",
+        "url": "#"
+      },
+      {
+        "name": "TYK",
+        "amount": "提供AI服务",
+        "desc": "赞助支持",
+        "url": "#"
+      },
+      {
+        "name": "ZHC",
+        "amount": "10元",
+        "desc": "赞助支持",
+        "url": "#"
+      },
+      {
+        "name": "LZJ",
+        "amount": "10元",
+        "desc": "赞助支持",
+        "url": "#"
+      },
+      {
+        "name": "ZHW",
+        "amount": "15元",
+        "desc": "赞助支持",
+        "url": "#"
+      }
+    ]
+  }
+}
