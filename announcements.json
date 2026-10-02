@@ -1,0 +1,47 @@
+[
+  {
+    "date": "2026-06-19",
+    "title": "以防你不知道的服务器功能",
+    "content": "1、去除附魔冲突，提高附魔等级上限。2、对着空处右键即可打开部分功能方块，如工作台。 3、部分不可堆叠物品可堆叠，如不死图腾。只能少量堆叠的物品能够堆叠64个。4.能够在副手放武器做到双持战斗；水桶加有激流附魔的三叉戟可以直接起飞；不死图腾放在背包即可触发；副手放铜锭可以增大物品和经验的拾取范围"
+  },
+  {
+    "date": "2026-06-14",
+    "title": "聊天室终于修好了",
+    "content": "由于优化网页性能不小心把聊天室改废了"
+  },
+  {
+    "date": "2026-06-10",
+    "title": "服务器重新改为了原版无规则服务器",
+    "content": "不许崩服或卡服等其他影响玩家体验的操作，尽量还是正常游玩吧。"
+  },
+  {
+    "date": "2026-05-31",
+    "title": "网站终于回归了！",
+    "content": "原网址ZSZZZ.CT.WS因为Domain ct.ws and wuaze.com are down(域名 ct.ws 和 wuaze.com 都宕机了)The domains ct.ws and wuaze.com are currently down due to a court order. All subdomains under these domains are currently down. We are working to get this resolved.(目前 ct.ws 和 wuaze.com 域名因法院命令而关闭。这些域名下的所有子域名目前都已宕机。我们正在努力解决这个问题。)没了"
+  },
+  {
+    "date": "2026-05-10",
+    "title": "🤖 AI助手上线",
+    "content": "现在可以使用 /AI 命令召唤AI助手了！例如：/AI 如何安装模组"
+  },
+  {
+    "date": "2026-05-02",
+    "title": "服务器更换为云服务器",
+    "content": "目前服务器安装了沉浸战斗4.1整合包，请前往首页下载完整合包并安装后才能加入游戏。"
+  },
+  {
+    "date": "2026-04-04",
+    "title": "网站大更新",
+    "content": "大幅修改网站样式，增加聊天室，增加多个跳转链接。"
+  },
+  {
+    "date": "2026-02-14",
+    "title": "服务器状态页面上线",
+    "content": "全新状态页面，实时监控在线人数与延迟。"
+  },
+  {
+    "date": "2026-02-12",
+    "title": "服务器更新至1.21.11版本",
+    "content": "升级Fabric模组加载器，性能优化。"
+  }
+]
