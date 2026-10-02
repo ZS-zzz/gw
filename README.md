@@ -1,4 +1,4 @@
-# 无名小服 · 群组状态
+ 无名小服 · 群组状态
 
 > 一个为 Minecraft 服务器打造的轻量级状态展示页面，单文件 HTML 实现，开箱即用。
 
@@ -47,7 +47,7 @@
 ## 🔗 相关链接
 
 - 📺 B站：[b23.tv/O6sNp3B](https://b23.tv/O6sNp3B)
-- 💬 QQ群：[1083805903](https://qm.qq.com/q/1083805903)
+- 💬 QQ群：[1083805903]
 
 ---
 
@@ -56,7 +56,7 @@
 - [mcstatus.io](https://mcstatus.io) — 服务器状态 API
 - [api.xygeng.cn](https://api.xygeng.cn/one) — 每日一言 API
 - [loliapi.com](https://www.loliapi.com/) 与 [uapis.cn](https://uapis.cn/) — 随机背景图
-- [DeepSeek](https://chat.deepseek.com) — 开发过程中的 AI 协助
+- [](https://chat.deepseek.com) — 开发过程中的 AI 协助
 
 ---
 
