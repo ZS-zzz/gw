@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover" />
     <meta name="theme-color" content="#1e88e5" />
     <meta name="color-scheme" content="light dark" />
-    <title>无名小服 · 群组状态</title>
+    <title>无名小服</title>
     <link rel="preconnect" href="https://api.mcstatus.io" crossorigin />
     <link rel="preconnect" href="https://www.loliapi.com" crossorigin />
     <link rel="preconnect" href="https://uapis.cn" crossorigin />
@@ -15,11 +15,18 @@
     <link rel="dns-prefetch" href="https://uapis.cn" />
     <link rel="dns-prefetch" href="https://api.xygeng.cn" />
     <script>
+        /* ★ 主题引导：优先读显式偏好，未设置时按访问者本地时间自动判断（18:00–06:00 深色） */
         (function() {
             try {
-                if (localStorage.getItem('darkMode') === 'true') {
-                    document.documentElement.classList.add('dark');
+                var mode = localStorage.getItem('themeMode') || 'auto';
+                var dark;
+                if (mode === 'dark') dark = true;
+                else if (mode === 'light') dark = false;
+                else {
+                    var h = new Date().getHours();
+                    dark = (h >= 18 || h < 6);
                 }
+                if (dark) document.documentElement.classList.add('dark');
             } catch (e) {}
         })();
     </script>
@@ -643,6 +650,108 @@
             display: block;
         }
 
+        /* ========== 在线玩家折叠列表 ========== */
+        .player-list-card {
+            grid-column: 1 / -1;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            animation: cardSlideUp var(--dur-xl) var(--ease-elastic) both;
+            animation-delay: 0.68s;
+        }
+        .player-list-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 22px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.5s var(--ease-smooth);
+        }
+        .player-list-head:focus-visible {
+            outline: 2px solid var(--primary-blue);
+            outline-offset: -3px;
+            border-radius: var(--card-radius);
+        }
+        @media (hover: hover) {
+            .player-list-head:hover { background: rgba(30, 136, 229, 0.07); }
+        }
+        .pl-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .pl-icon { font-size: 1.05rem; line-height: 1; }
+        .pl-arrow {
+            font-size: 0.95rem;
+            color: var(--primary-blue);
+            display: inline-block;
+            transition: transform 0.7s var(--ease-elastic);
+        }
+        .player-list-card.expanded .pl-arrow { transform: rotate(180deg); }
+        .player-list-body {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            padding: 0 22px;
+            transition: max-height 0.85s var(--ease-smooth),
+                        opacity 0.55s var(--ease-smooth),
+                        padding 0.6s var(--ease-smooth);
+        }
+        .player-list-card.expanded .player-list-body {
+            max-height: 900px;
+            opacity: 1;
+            padding: 0 22px 20px;
+        }
+        .player-list-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding: 2px;
+        }
+        .player-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 14px 5px 5px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.46);
+            border: 1px solid var(--border-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            max-width: 100%;
+            transition: transform 0.5s var(--ease-elastic), background 0.5s var(--ease-smooth);
+        }
+        :root.dark .player-chip { background: rgba(255, 255, 255, 0.08); }
+        @media (hover: hover) {
+            .player-chip:hover { transform: translateY(-2px); background: rgba(30, 136, 229, 0.14); }
+        }
+        .player-avatar {
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.76rem;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+        }
+        .player-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+        }
+        .player-list-empty {
+            font-size: 0.85rem;
+            color: var(--text-soft);
+            padding: 4px 2px 2px;
+        }
+
         /* ========== 骨架屏 ========== */
         @keyframes skeletonShimmer {
             0%   { background-position: -200% 0; }
@@ -1087,6 +1196,7 @@
             .map-frame-wrap { height: clamp(320px, 58vh, 560px); }
             .time-card { padding: 24px 18px; }
             .time-clock { letter-spacing: 2px; }
+            .player-name { max-width: 110px; }
         }
 
         @media (hover: none) {
@@ -1130,7 +1240,7 @@
             </div>
             <div class="nav-right">
                 <div class="settings-mini">
-                    <button class="icon-btn" id="darkModeBtn" title="深色模式" type="button">🌙</button>
+                    <button class="icon-btn" id="darkModeBtn" title="主题模式" type="button">🌗</button>
                     <button class="icon-btn" id="langBtn" title="语言切换" type="button">🌐</button>
                     <button class="icon-btn" id="forceRefreshBtn" title="强制刷新" type="button">🔄</button>
                 </div>
@@ -1194,6 +1304,21 @@
                     <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
                         <img id="serverIcon" class="server-icon-img" style="display:none;" alt="服务器图标" />
                         <div class="m-value motd-text" id="motdValue">暂无数据</div>
+                    </div>
+                </div>
+
+                <!-- ★ 在线玩家折叠列表（仅在 API 返回 players.list 时显示） -->
+                <div class="player-list-card glass" id="playerListCard" style="display:none;">
+                    <div class="player-list-head" id="playerListToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="playerListBody">
+                        <div class="pl-left">
+                            <span class="pl-icon" aria-hidden="true">👥</span>
+                            <span class="m-label" data-i18n="players_detail">在线玩家列表</span>
+                            <span class="group-count" id="playerListCount">0</span>
+                        </div>
+                        <span class="pl-arrow" aria-hidden="true">▾</span>
+                    </div>
+                    <div class="player-list-body" id="playerListBody">
+                        <div class="player-list-grid" id="playerListGrid"></div>
                     </div>
                 </div>
             </div>
@@ -1337,6 +1462,11 @@
             var OTHER_SOURCES = ['other.json'];
             var GROUP_ICONS = { friends: '🔗', team: '👥', sponsor: '☕', items: '✨' };
 
+            /* 主题：auto / dark / light —— auto 时按访问者本地时间判断 */
+            var THEME_KEY = 'themeMode';
+            var THEME_DARK_FROM = 18;   // 18:00 起进入深色
+            var THEME_DARK_TO   = 6;    // 06:00 起回到亮色
+
             var FALLBACK_QUOTES = [
                 "愿你今天的每一分钟，都藏着小惊喜。",
                 "慢慢来，比较快。",
@@ -1361,6 +1491,7 @@
                     copy_success: "✅ 已复制!", copy_fail: "复制失败，请手动复制",
                     status: "状态", status_online: "在线", status_offline: "离线",
                     players: "在线玩家", latency: "延迟", version: "版本", motd: "MOTD",
+                    players_detail: "在线玩家列表",
                     server_addr_label: "服务器地址",
                     announcements_title: "公告", loading: "加载中...",
                     empty_ann_title: "暂无公告", empty_ann_desc: "暂时没有可显示的公告内容，请稍后再来看看吧~",
@@ -1374,7 +1505,10 @@
                     map_tip: "💡 若地图长时间无法显示，请点击右上角「新标签页打开」。",
                     first_visit_title: "🎉 欢迎访问无名小服",
                     first_visit_text: "欢迎访问无名小服官网 · QQ交流群：1083805903",
-                    first_visit_btn: "我知道了", err_offline: "无法连接到服务器"
+                    first_visit_btn: "我知道了", err_offline: "无法连接到服务器",
+                    theme_auto: "🌗 主题：自动（18:00–06:00 深色）",
+                    theme_dark: "🌙 主题：深色",
+                    theme_light: "☀️ 主题：浅色"
                 },
                 en: {
                     brand: "Nameless Server", nav_home: "Home", nav_map: "Map",
@@ -1383,6 +1517,7 @@
                     copy_success: "✅ Copied!", copy_fail: "Copy failed",
                     status: "Status", status_online: "Online", status_offline: "Offline",
                     players: "Players", latency: "Latency", version: "Version", motd: "MOTD",
+                    players_detail: "Online Players",
                     server_addr_label: "Server Address",
                     announcements_title: "Announcements", loading: "Loading...",
                     empty_ann_title: "No announcements",
@@ -1397,7 +1532,10 @@
                     map_tip: "💡 If the map doesn't load, use \"Open in new tab\" at the top right.",
                     first_visit_title: "🎉 Welcome to Nameless Server",
                     first_visit_text: "Welcome to Nameless Server · QQ Group: 1083805903",
-                    first_visit_btn: "Got it", err_offline: "Cannot connect to server"
+                    first_visit_btn: "Got it", err_offline: "Cannot connect to server",
+                    theme_auto: "🌗 Theme: Auto (dark 18:00–06:00)",
+                    theme_dark: "🌙 Theme: Dark",
+                    theme_light: "☀️ Theme: Light"
                 }
             };
 
@@ -1405,6 +1543,7 @@
             var announcementsData = [];
             var otherGroups = [];
             var usingOfflineCache = false;
+            var currentBgSrc = null;   // 已加载的背景图地址（主题切换时复用）
 
             /* ============================================================
              *  工具函数
@@ -1592,7 +1731,9 @@
                 mapFrame: $('mapFrame'), mapLoading: $('mapLoading'), refreshMapBtn: $('refreshMapBtn'),
                 timeCard: $('timeCard'), timeGreeting: $('timeGreeting'),
                 timeClock: $('timeClock'), timeDate: $('timeDate'), dailyQuote: $('dailyQuote'),
-                navLinks: $('navLinks'), navIndicator: $('navIndicator')
+                navLinks: $('navLinks'), navIndicator: $('navIndicator'),
+                playerListCard: $('playerListCard'), playerListToggle: $('playerListToggle'),
+                playerListGrid: $('playerListGrid'), playerListCount: $('playerListCount')
             };
 
             /* ============================================================
@@ -1662,8 +1803,17 @@
             }
 
             /* ============================================================
-             *  随机背景
+             *  随机背景（主题切换时可重新叠加遮罩）
              * ============================================================ */
+            function applyBackground() {
+                if (!currentBgSrc) return;
+                var dark = document.documentElement.classList.contains('dark');
+                var overlay = dark
+                    ? 'linear-gradient(rgba(18,31,42,0.55), rgba(18,31,42,0.55))'
+                    : 'linear-gradient(rgba(245,249,255,0.25), rgba(245,249,255,0.25))';
+                document.body.style.backgroundImage = overlay + ', url(' + currentBgSrc + ')';
+            }
+
             function setRandomBackground() {
                 return new Promise(function(resolve) {
                     if (!window.Image) return resolve(null);
@@ -1676,12 +1826,8 @@
                             if (settled) return;
                             settled = true;
                             if (src) {
-                                document.body.style.backgroundImage =
-                                    'linear-gradient(rgba(245,249,255,0.25), rgba(245,249,255,0.25)), url(' + src + ')';
-                                if (document.documentElement.classList.contains('dark')) {
-                                    document.body.style.backgroundImage =
-                                        'linear-gradient(rgba(18,31,42,0.55), rgba(18,31,42,0.55)), url(' + src + ')';
-                                }
+                                currentBgSrc = src;
+                                applyBackground();
                                 resolve(src);
                             } else {
                                 tryLoad(apis, index + 1);
@@ -1830,18 +1976,81 @@
                 var startTime = (window.performance && performance.now) ? performance.now() : Date.now();
                 return xhrJson(API_BASE + encodeURIComponent(address), 10000).then(function(data) {
                     var latency = Math.round(((window.performance && performance.now) ? performance.now() : Date.now()) - startTime);
+                    var rawList = (data.players && Array.isArray(data.players.list)) ? data.players.list : null;
                     return {
                         online: !!data.online,
                         players: (data.players && data.players.online) || 0,
                         max: (data.players && data.players.max) || 0,
+                        playerList: rawList,
                         latency: latency,
                         version: (data.version && (data.version.name_clean || data.version.name_raw)) || '未知',
                         motd: (data.motd && (data.motd.clean || data.motd.raw)) || '',
                         icon: data.icon || null
                     };
                 }).catch(function() {
-                    return { online: false, players: 0, max: 0, latency: null, version: '未知', motd: '', icon: null };
+                    return { online: false, players: 0, max: 0, playerList: null, latency: null, version: '未知', motd: '', icon: null };
                 });
+            }
+
+            /* ============================================================
+             *  在线玩家列表
+             * ============================================================ */
+            function normalizePlayers(list) {
+                if (!Array.isArray(list)) return [];
+                return list.map(function(p) {
+                    var name = '';
+                    if (typeof p === 'string') {
+                        name = p;
+                    } else if (p && typeof p === 'object') {
+                        name = p.name_clean || p.name || p.name_raw || '';
+                    }
+                    name = String(name).replace(/§./g, '').trim();
+                    if (!name) return null;
+                    return { name: name };
+                }).filter(Boolean);
+            }
+
+            function playerHue(name) {
+                var h = 0;
+                for (var i = 0; i < name.length; i++) {
+                    h = (h * 31 + name.charCodeAt(i)) % 360;
+                }
+                return h;
+            }
+
+            function renderPlayerList(players) {
+                var card = d.playerListCard;
+                if (!card) return;
+
+                if (!players || players.length === 0) {
+                    card.style.display = 'none';
+                    card.classList.remove('expanded');
+                    if (d.playerListToggle) d.playerListToggle.setAttribute('aria-expanded', 'false');
+                    if (d.playerListGrid) d.playerListGrid.innerHTML = '';
+                    if (d.playerListCount) d.playerListCount.textContent = '0';
+                    return;
+                }
+
+                card.style.display = '';
+                d.playerListCount.textContent = players.length;
+                d.playerListGrid.innerHTML = players.map(function(p) {
+                    var hue = playerHue(p.name);
+                    var hue2 = (hue + 42) % 360;
+                    var initial = p.name.charAt(0).toUpperCase();
+                    var bg = 'background:linear-gradient(135deg,hsl(' + hue + ',68%,58%),hsl(' + hue2 + ',70%,42%));';
+                    return '<span class="player-chip" title="' + escapeHtml(p.name) + '">' +
+                        '<span class="player-avatar" style="' + bg + '">' + escapeHtml(initial) + '</span>' +
+                        '<span class="player-name">' + escapeHtml(p.name) + '</span>' +
+                        '</span>';
+                }).join('');
+            }
+
+            function togglePlayerList() {
+                if (!d.playerListCard) return;
+                var expanded = d.playerListCard.classList.toggle('expanded');
+                if (d.playerListToggle) {
+                    d.playerListToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                }
             }
 
             function refreshMonitor(showToastMsg) {
@@ -1867,6 +2076,9 @@
                         d.serverIcon.style.display = 'none';
                         d.serverIcon.removeAttribute('src');
                     }
+
+                    /* ★ 玩家列表：仅当 API 返回 players.list 时才展示 */
+                    renderPlayerList(isOnline ? normalizePlayers(status.playerList) : []);
 
                     if (showToastMsg) {
                         showToast(isOnline
@@ -2169,16 +2381,58 @@
             }
 
             /* ============================================================
-             *  深色 / 语言
+             *  ★ 主题：自动（跟随访问者时间）/ 深色 / 浅色
              * ============================================================ */
-            function toggleDarkMode() {
-                var isDark = !document.documentElement.classList.contains('dark');
-                if (isDark) document.documentElement.classList.add('dark');
-                else document.documentElement.classList.remove('dark');
-                storage.set('darkMode', isDark ? 'true' : 'false');
-                d.darkBtn.textContent = isDark ? '☀️' : '🌙';
+            var THEME_ICONS = { auto: '🌗', dark: '🌙', light: '☀️' };
+
+            function getThemeMode() {
+                var m = storage.get(THEME_KEY);
+                return (m === 'dark' || m === 'light' || m === 'auto') ? m : 'auto';
             }
 
+            /* 本地时间判断：18:00 ~ 05:59 为深色 */
+            function getAutoDark() {
+                var h = new Date().getHours();
+                return (h >= THEME_DARK_FROM || h < THEME_DARK_TO);
+            }
+
+            function themeTitle(mode) {
+                return t(mode === 'auto' ? 'theme_auto' : (mode === 'dark' ? 'theme_dark' : 'theme_light'));
+            }
+
+            function applyTheme() {
+                var mode = getThemeMode();
+                var dark = (mode === 'dark') ? true : (mode === 'light' ? false : getAutoDark());
+                if (dark) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+
+                if (d.darkBtn) {
+                    d.darkBtn.textContent = THEME_ICONS[mode];
+                    d.darkBtn.title = themeTitle(mode);
+                }
+                applyBackground();
+            }
+
+            /* 三态循环：自动 → 深色 → 浅色 → 自动 */
+            function cycleTheme() {
+                var mode = getThemeMode();
+                var next = mode === 'auto' ? 'dark' : (mode === 'dark' ? 'light' : 'auto');
+                storage.set(THEME_KEY, next);
+                applyTheme();
+                showToast(themeTitle(next));
+            }
+
+            /* 处于自动模式时，每分钟检查一次是否需要随昼夜切换 */
+            function autoThemeCheck() {
+                if (getThemeMode() !== 'auto') return;
+                var shouldDark = getAutoDark();
+                var isDark = document.documentElement.classList.contains('dark');
+                if (shouldDark !== isDark) applyTheme();
+            }
+
+            /* ============================================================
+             *  语言
+             * ============================================================ */
             function applyI18n(lang) {
                 var els = document.querySelectorAll('[data-i18n]');
                 Array.prototype.forEach.call(els, function(el) {
@@ -2211,6 +2465,7 @@
                     renderAnnouncements();
                     renderOther();
                     renderTimeCard(false);
+                    applyTheme();
                     requestAnimationFrame(updateIndicator);
                 }, 500);
             }
@@ -2269,15 +2524,16 @@
                 currentLang = storage.get('lang') || 'zh';
                 applyI18n(currentLang);
 
+                /* ★ 主题：先按“自动/显式偏好”决定一次（自动=按访问者本地时间） */
+                applyTheme();
+
                 /* ★ 提前并行拉取公告与其他内容：
                    不等背景图、不等服务器状态，脚本一执行就发出请求，
                    加载动画期间即可完成渲染。 */
                 var earlyAnnP = loadAnnouncements();
                 var earlyOtherP = loadOther();
 
-                var isDark = document.documentElement.classList.contains('dark');
-                d.darkBtn.textContent = isDark ? '☀️' : '🌙';
-                d.darkBtn.addEventListener('click', toggleDarkMode);
+                d.darkBtn.addEventListener('click', cycleTheme);
 
                 var navs = document.querySelectorAll('.nav-link[data-view]');
                 Array.prototype.forEach.call(navs, function(link) {
@@ -2306,8 +2562,19 @@
                     showToast('🗺️ 正在重新加载地图');
                 });
 
-                d.mapFrame.addEventListener('load', function() {
+                /* ★ 在线玩家列表：点击 / 键盘展开收起 */
+                if (d.playerListToggle) {
+                    d.playerListToggle.addEventListener('click', togglePlayerList);
+                    d.playerListToggle.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                            e.preventDefault();
+                            togglePlayerList();
+                        }
+                    });
+                }
 
+                d.mapFrame.addEventListener('load', function() {
+                    var src = d.mapFrame.getAttribute('src') || '';
                     if (!src || src === 'about:blank') return;
                     clearTimeout(mapLoadingTimer);
                     d.mapLoading.classList.add('hidden');
@@ -2341,6 +2608,8 @@
                     hideLoader();
                     setTimeout(firstVisit, 1200);
                     setInterval(function() { refreshMonitor(false); }, 30000);
+                    /* ★ 每分钟检查一次昼夜自动切换（仅 auto 模式生效） */
+                    setInterval(autoThemeCheck, 60000);
                 });
             }
 
