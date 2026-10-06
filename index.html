@@ -15,19 +15,51 @@
     <link rel="dns-prefetch" href="https://uapis.cn" />
     <link rel="dns-prefetch" href="https://api.xygeng.cn" />
     <script>
-        /* ★ 主题引导：优先读显式偏好，未设置时按访问者本地时间自动判断（18:00–06:00 深色） */
-        (function() {
+        /* ★ 引导脚本：主题 + 毛玻璃档位（在首帧前决定，避免闪烁） */
+        (function () {
+            var THEME_KEY = 'themeMode', GLASS_KEY = 'glassLevel';
+
+            /* ---- 主题：显式偏好优先，未设置时按访问者本地时间（18:00–06:00 深色） ---- */
             try {
-                var mode = localStorage.getItem('themeMode') || 'auto';
+                var mode = localStorage.getItem(THEME_KEY) || 'auto';
                 var dark;
                 if (mode === 'dark') dark = true;
                 else if (mode === 'light') dark = false;
-                else {
-                    var h = new Date().getHours();
-                    dark = (h >= 18 || h < 6);
-                }
+                else { var h = new Date().getHours(); dark = (h >= 18 || h < 6); }
                 if (dark) document.documentElement.classList.add('dark');
             } catch (e) {}
+
+            /* ---- 毛玻璃三档检测 ---- */
+            function supportsBackdrop() {
+                try {
+                    return !!(window.CSS && CSS.supports &&
+                        (CSS.supports('backdrop-filter', 'blur(2px)') ||
+                         CSS.supports('-webkit-backdrop-filter', 'blur(2px)')));
+                } catch (e) { return false; }
+            }
+            function detectGlass() {
+                var saved = null;
+                try { saved = localStorage.getItem(GLASS_KEY); } catch (e) {}
+                if (saved === 'high' || saved === 'medium' || saved === 'low') return saved;
+
+                /* 不支持模糊 / 用户偏好减少透明 → 最低档（实色） */
+                if (!supportsBackdrop()) return 'low';
+                try {
+                    if (window.matchMedia && matchMedia('(prefers-reduced-transparency: reduce)').matches) return 'low';
+                } catch (e) {}
+
+                var mem = navigator.deviceMemory || 0;
+                var cores = navigator.hardwareConcurrency || 0;
+                var ua = navigator.userAgent || '';
+                var mobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone|HarmonyOS/i.test(ua);
+
+                if (mem && mem <= 2) return 'low';
+                if (cores && cores <= 2) return 'low';
+                if (mobile) return 'medium';                       /* 移动端一律中档，兼顾观感与帧率 */
+                if ((mem && mem >= 8) || (cores && cores >= 8)) return 'high';
+                return 'medium';
+            }
+            document.documentElement.setAttribute('data-glass', detectGlass());
         })();
     </script>
     <style>
@@ -35,14 +67,16 @@
         :root {
             --primary-blue: #1e88e5;
             --light-blue: #42a5f5;
-            --text-dark: #1f2c38;          /* 加深正文颜色，提升亮色模式可读性 */
-            --text-soft: #4c5a67;          /* 次级文本同步加深 */
+            --text-dark: #1f2c38;
+            --text-soft: #4c5a67;
             --online: #2e9e4f;
             --offline: #d93a2b;
             --starting: #e08600;
-            --card-bg: rgba(255, 255, 255, 0.34);   /* 略提高卡片底色，弱化背景图干扰 */
+
+            --card-bg: rgba(255, 255, 255, 0.44);
             --card-bg-solid: #fafcff;
-            --card-bg-hover: rgba(255, 255, 255, 0.55);
+            --card-bg-hover: rgba(255, 255, 255, 0.62);
+            --chip-bg: rgba(255, 255, 255, 0.46);
             --bg-start: #f5f9ff;
             --bg-end: #e3f2fd;
             --border-light: rgba(255, 255, 255, 0.55);
@@ -50,6 +84,13 @@
             --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.04);
             --shadow-lg: 0 16px 56px rgba(0, 0, 0, 0.16), 0 8px 24px rgba(0, 0, 0, 0.06);
             --shadow-hover: 0 20px 64px rgba(0, 0, 0, 0.20), 0 8px 28px rgba(0, 0, 0, 0.08);
+
+            /* —— 毛玻璃基础参数（会被 html[data-glass] 覆盖） —— */
+            --glass-blur: 12px;
+            --glass-saturate: 150%;
+            --glass-inset: rgba(255, 255, 255, 0.08);
+            --veil: rgba(248, 251, 255, 0.66);
+            --veil-blur: 1px;
 
             --ease-elastic: cubic-bezier(0.28, 0.98, 0.46, 1);
             --ease-bounce:  cubic-bezier(0.30, 0.90, 0.48, 1);
@@ -63,8 +104,6 @@
             --dur-xl: 1.95s;
             --dur-xxl: 2.55s;
 
-            --glass-blur: 12px;
-            --glass-saturate: 200%;
             --nav-btn-radius: 40px;
             --card-radius: 32px;
         }
@@ -76,18 +115,82 @@
             --online: #81c784;
             --offline: #ef9a9a;
             --starting: #ffb74d;
-            --card-bg: rgba(0, 0, 0, 0.35);
             --card-bg-solid: #16232e;
-            --card-bg-hover: rgba(0, 0, 0, 0.52);
+            --chip-bg: rgba(255, 255, 255, 0.08);
             --border-light: rgba(255, 255, 255, 0.15);
             --border-light-hover: rgba(255, 255, 255, 0.35);
-            /* 深色模式阴影大幅收敛，避免“黑块”感 */
             --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.28), 0 1px 4px rgba(0, 0, 0, 0.18);
             --shadow-lg: 0 8px 26px rgba(0, 0, 0, 0.34), 0 3px 12px rgba(0, 0, 0, 0.20);
             --shadow-hover: 0 10px 32px rgba(0, 0, 0, 0.40), 0 4px 14px rgba(0, 0, 0, 0.24);
             --bg-start: #121f2a;
             --bg-end: #1a2c36;
         }
+
+        /* ============================================================
+         *  ★ 毛玻璃三档
+         *  high   —— 桌面高性能：强模糊 + 高饱和 + 更透的卡片
+         *  medium —— 移动端 / 中等设备：中等模糊 + 稍实的卡片保证可读性
+         *  low    —— 低端设备 / 不支持 backdrop-filter：完全关闭模糊，改实色
+         * ============================================================ */
+        html[data-glass="high"] {
+            --glass-blur: 20px;
+            --glass-saturate: 180%;
+            --glass-inset: rgba(255, 255, 255, 0.12);
+            --card-bg: rgba(255, 255, 255, 0.30);
+            --card-bg-hover: rgba(255, 255, 255, 0.46);
+            --chip-bg: rgba(255, 255, 255, 0.42);
+            --veil: rgba(248, 251, 255, 0.58);
+            --veil-blur: 2px;
+        }
+        html[data-glass="medium"] {
+            --glass-blur: 12px;
+            --glass-saturate: 150%;
+            --glass-inset: rgba(255, 255, 255, 0.08);
+            --card-bg: rgba(255, 255, 255, 0.44);
+            --card-bg-hover: rgba(255, 255, 255, 0.62);
+            --chip-bg: rgba(255, 255, 255, 0.50);
+            --veil: rgba(248, 251, 255, 0.66);
+            --veil-blur: 1px;
+        }
+        html[data-glass="low"] {
+            --glass-blur: 0px;
+            --glass-saturate: 100%;
+            --glass-inset: transparent;
+            --card-bg: rgba(255, 255, 255, 0.90);
+            --card-bg-hover: rgba(255, 255, 255, 0.98);
+            --chip-bg: rgba(255, 255, 255, 0.85);
+            --veil: rgba(248, 251, 255, 0.88);
+            --veil-blur: 0px;
+            --border-light: rgba(30, 136, 229, 0.16);
+            --border-light-hover: rgba(30, 136, 229, 0.30);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07), 0 1px 4px rgba(0, 0, 0, 0.04);
+            --shadow-hover: 0 10px 32px rgba(0, 0, 0, 0.12), 0 4px 14px rgba(0, 0, 0, 0.06);
+        }
+        html.dark[data-glass="high"] {
+            --card-bg: rgba(18, 31, 42, 0.40);
+            --card-bg-hover: rgba(24, 40, 52, 0.58);
+            --chip-bg: rgba(255, 255, 255, 0.08);
+            --veil: rgba(18, 31, 42, 0.52);
+            --glass-inset: rgba(255, 255, 255, 0.06);
+        }
+        html.dark[data-glass="medium"] {
+            --card-bg: rgba(22, 35, 46, 0.62);
+            --card-bg-hover: rgba(30, 46, 58, 0.78);
+            --chip-bg: rgba(255, 255, 255, 0.08);
+            --veil: rgba(18, 31, 42, 0.68);
+            --glass-inset: rgba(255, 255, 255, 0.05);
+        }
+        html.dark[data-glass="low"] {
+            --card-bg: rgba(22, 35, 46, 0.95);
+            --card-bg-hover: rgba(30, 46, 58, 0.99);
+            --chip-bg: rgba(255, 255, 255, 0.10);
+            --veil: rgba(18, 31, 42, 0.94);
+            --border-light: rgba(100, 181, 246, 0.20);
+            --border-light-hover: rgba(100, 181, 246, 0.34);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.30), 0 1px 4px rgba(0, 0, 0, 0.20);
+            --shadow-hover: 0 10px 32px rgba(0, 0, 0, 0.42), 0 4px 14px rgba(0, 0, 0, 0.26);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         /* ========== 页面基础 ========== */
@@ -119,41 +222,44 @@
             body { background-attachment: fixed; }
         }
 
+        /* ========== 玻璃卡片 ========== */
         .glass {
             background: var(--card-bg);
             border: 1px solid var(--border-light);
-            box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+            box-shadow: var(--shadow-md), inset 0 0 0 1px var(--glass-inset);
             border-radius: var(--card-radius);
             position: relative;
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
         }
         @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-            .glass {
-                backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+            html:not([data-glass="low"]) .glass {
                 -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+                backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
             }
         }
-        @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-            .glass {
-                background: var(--card-bg-solid);
-                border-color: rgba(30, 136, 229, 0.20);
-            }
-            :root.dark .glass { border-color: rgba(100, 181, 246, 0.25); }
-            body::before { display: none !important; }
+        /* 低档：彻底关闭模糊，改用实色底（兼容旧 WebView / 低端机） */
+        html[data-glass="low"] .glass {
+            -webkit-backdrop-filter: none !important;
+            backdrop-filter: none !important;
         }
 
+        /* 全屏遮罩：削弱背景图干扰，同时把模糊层数限制为一层 */
         body::before {
             content: '';
             position: fixed;
             inset: 0;
-            /* 亮色模式提高遮罩不透明度，让背景图不再与文字抢对比度 */
-            background: rgba(248, 251, 255, 0.62);
-            -webkit-backdrop-filter: blur(2px);
-            backdrop-filter: blur(2px);
+            background: var(--veil);
+            -webkit-backdrop-filter: blur(var(--veil-blur));
+            backdrop-filter: blur(var(--veil-blur));
             z-index: -1;
             transition: background 1.1s var(--ease-smooth);
             pointer-events: none;
         }
-        :root.dark body::before { background: rgba(18, 31, 42, 0.60); }
+        html[data-glass="low"] body::before {
+            -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+        }
 
         .container {
             max-width: 1100px;
@@ -265,6 +371,8 @@
             overflow: hidden;
         }
         .view.active { display: flex; }
+        /* 帮助视图允许 sticky 侧栏，故不裁剪溢出 */
+        #view-help { overflow: visible; }
 
         .view.active > * {
             animation: cardSlideUp var(--dur-xl) var(--ease-elastic) both;
@@ -324,7 +432,7 @@
             font-weight: 600;
             font-size: 0.85rem;
             cursor: pointer;
-            color: #4c5a67;                 /* 亮色模式加深，提升可读性 */
+            color: #4c5a67;
             white-space: nowrap;
             text-decoration: none;
             display: inline-block;
@@ -399,7 +507,7 @@
             .icon-btn:hover { background: var(--primary-blue); color: white; }
         }
 
-        /* ========== 地址提示条（服务器地址已放大） ========== */
+        /* ========== 地址提示条 ========== */
         .addr-banner {
             padding: 16px 26px;
             display: flex;
@@ -718,7 +826,7 @@
             gap: 8px;
             padding: 5px 14px 5px 5px;
             border-radius: 30px;
-            background: rgba(255, 255, 255, 0.46);
+            background: var(--chip-bg);
             border: 1px solid var(--border-light);
             font-size: 0.85rem;
             font-weight: 600;
@@ -726,7 +834,6 @@
             max-width: 100%;
             transition: transform 0.5s var(--ease-elastic), background 0.5s var(--ease-smooth);
         }
-        :root.dark .player-chip { background: rgba(255, 255, 255, 0.08); }
         @media (hover: hover) {
             .player-chip:hover { transform: translateY(-2px); background: rgba(30, 136, 229, 0.14); }
         }
@@ -745,11 +852,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 150px;
-        }
-        .player-list-empty {
-            font-size: 0.85rem;
-            color: var(--text-soft);
-            padding: 4px 2px 2px;
         }
 
         /* ========== 骨架屏 ========== */
@@ -787,9 +889,9 @@
             gap: 12px;
         }
         @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-            .skeleton-card {
-                backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+            html:not([data-glass="low"]) .skeleton-card {
                 -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+                backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
             }
         }
         .skeleton-line {
@@ -810,25 +912,10 @@
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 16px;
         }
-        .skeleton-other-grid .skeleton-card {
-            padding: 18px;
-        }
-        .skeleton-head {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .skeleton-icon {
-            width: 48px; height: 48px;
-            border-radius: 14px;
-            flex-shrink: 0;
-        }
-        .skeleton-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+        .skeleton-other-grid .skeleton-card { padding: 18px; }
+        .skeleton-head { display: flex; align-items: center; gap: 12px; }
+        .skeleton-icon { width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0; }
+        .skeleton-info { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 
         /* ========== 公告 ========== */
         .announcement-list { display: flex; flex-direction: column; gap: 16px; }
@@ -984,51 +1071,117 @@
             .other-card:hover .o-arrow { transform: translateX(3px); opacity: 1; }
         }
 
-        /* ========== 地图 ========== */
-        .map-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .map-frame-wrap {
-            position: relative;
-            width: 100%;
-            height: clamp(380px, 64vh, 760px);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid var(--border-light);
-            background: rgba(0, 0, 0, 0.12);
-            box-shadow: var(--shadow-md);
+        /* ============================================================
+         *  ★ 游玩帮助（原独立页面合并而来）
+         * ============================================================ */
+        .help-layout {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 20px;
+            align-items: start;
         }
-        .map-frame-wrap iframe {
-            width: 100%; height: 100%;
-            border: 0; display: block;
-            background: transparent;
+        .help-sidebar {
+            padding: 18px 14px;
+            align-self: start;
+            position: sticky;
+            top: 16px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
         }
-        .map-loading {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            background: var(--card-bg-solid);
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            transition: opacity 0.9s var(--ease-smooth), visibility 0.9s var(--ease-smooth);
-            z-index: 2;
+        .help-sidebar::-webkit-scrollbar { width: 6px; }
+        .help-sidebar::-webkit-scrollbar-thumb { background: rgba(30, 136, 229, 0.2); border-radius: 3px; }
+        .help-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(30, 136, 229, 0.4); }
+        .help-sidebar-head {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px dashed var(--border-light);
+            font-weight: 700; font-size: 1.02rem; color: var(--text-dark);
         }
-        .map-loading.hidden { opacity: 0; visibility: hidden; }
-        .map-spinner {
-            width: 40px; height: 40px; border-radius: 50%;
-            border: 3px solid rgba(30, 136, 229, 0.2);
-            border-top-color: var(--primary-blue);
-            animation: loaderSpin 2s linear infinite;
+
+        /* 树形目录 */
+        .tree-node { margin-bottom: 4px; }
+        .tree-header {
+            display: flex; align-items: center; padding: 10px 14px; border-radius: 14px;
+            cursor: pointer; user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.3s var(--ease-smooth), color 0.3s var(--ease-smooth),
+                        box-shadow 0.3s var(--ease-smooth);
+            background: transparent; font-weight: 600; font-size: 0.92rem; color: var(--text-dark);
+            position: relative; overflow: hidden;
         }
-        .map-tip {
-            font-size: 0.82rem;
-            opacity: 0.74;
-            text-align: center;
-            line-height: 1.6;
+        .tree-header:hover { background: rgba(30, 136, 229, 0.08); color: var(--primary-blue); }
+        .tree-header.active {
+            background: linear-gradient(135deg, var(--primary-blue), var(--light-blue));
+            color: white; box-shadow: 0 4px 14px rgba(30, 136, 229, 0.3);
         }
+        .tree-arrow {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; margin-right: 6px; font-size: 0.7rem;
+            transition: transform 0.4s var(--ease-elastic); color: var(--text-soft);
+        }
+        .tree-header.active .tree-arrow { color: rgba(255, 255, 255, 0.8); }
+        .tree-node.expanded > .tree-header .tree-arrow { transform: rotate(90deg); }
+        .tree-children {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 0.5s var(--ease-out-soft),
+                        opacity 0.4s var(--ease-smooth),
+                        padding 0.3s ease;
+            padding-left: 22px;
+        }
+        .tree-node.expanded > .tree-children {
+            max-height: 4000px; opacity: 1; padding-top: 4px; padding-bottom: 4px;
+        }
+        .toc-empty {
+            padding: 40px 20px; text-align: center;
+            color: var(--text-soft); font-size: 0.9rem;
+        }
+        .toc-empty .big-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; opacity: 0.6; }
+
+        /* 文档主内容 */
+        .help-content {
+            padding: 30px;
+            min-height: 480px;
+            display: flex; flex-direction: column;
+        }
+        .content-header {
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 16px; margin-bottom: 22px;
+        }
+        .content-title {
+            font-size: 1.5rem; font-weight: 800; color: var(--text-dark);
+            display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        .content-meta { font-size: 0.85rem; color: var(--text-soft); font-weight: 500; }
+        .content-body {
+            line-height: 1.8; font-size: 0.95rem; color: var(--text-dark);
+            flex: 1; word-break: break-word;
+        }
+        .content-body p { margin-bottom: 16px; }
+        .content-body img { max-width: 100%; border-radius: 12px; margin: 12px 0; }
+        .content-body h1, .content-body h2, .content-body h3 { margin: 20px 0 12px; color: var(--text-dark); }
+        .content-body pre {
+            background: rgba(0, 0, 0, 0.06); padding: 14px; border-radius: 12px;
+            overflow-x: auto; font-size: 0.85rem;
+        }
+        :root.dark .content-body pre { background: rgba(255, 255, 255, 0.06); }
+        .content-body code {
+            background: rgba(30, 136, 229, 0.12); padding: 2px 6px; border-radius: 5px;
+            font-family: 'SFMono-Regular', Consolas, monospace; font-size: 0.88em;
+        }
+        .content-body a { color: var(--primary-blue); text-decoration: none; }
+        .content-body a:hover { text-decoration: underline; }
+        :root:not(.dark) .content-body a { color: #1565c0; }
+        .empty-doc {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; min-height: 400px; text-align: center; color: var(--text-soft);
+            gap: 14px; opacity: 0.85;
+        }
+        .empty-doc .big-icon { font-size: 4rem; }
+        .empty-doc h3 { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); }
+        .empty-doc p { font-size: 0.9rem; max-width: 340px; line-height: 1.7; }
 
         /* ========== 通用状态 ========== */
         .empty-state {
@@ -1037,7 +1190,6 @@
         }
         .empty-state .big-icon { font-size: 3rem; display: block; margin-bottom: 12px; }
 
-        /* 离线提示 */
         .offline-banner {
             display: none;
             background: rgba(255, 152, 0, 0.16);
@@ -1176,6 +1328,10 @@
         }
 
         /* ========== 响应式 ========== */
+        @media (max-width: 900px) {
+            .help-layout { grid-template-columns: 1fr; }
+            .help-sidebar { position: static; max-height: none; }
+        }
         @media (max-width: 640px) {
             .monitor-grid { grid-template-columns: 1fr; }
             .navbar { flex-direction: column; align-items: stretch; padding: 10px 14px; border-radius: 32px; }
@@ -1193,10 +1349,11 @@
             .other-grid, .skeleton-other-grid { grid-template-columns: 1fr; }
             body { padding: 8px 8px 0 8px; }
             .loader-ring { width: 62px; height: 62px; }
-            .map-frame-wrap { height: clamp(320px, 58vh, 560px); }
             .time-card { padding: 24px 18px; }
             .time-clock { letter-spacing: 2px; }
             .player-name { max-width: 110px; }
+            .help-content { padding: 20px; min-height: 320px; }
+            .content-title { font-size: 1.25rem; }
         }
 
         @media (hover: none) {
@@ -1232,7 +1389,7 @@
                 </div>
                 <div class="nav-links" id="navLinks">
                     <a class="nav-link active" data-view="home" data-i18n="nav_home">主页</a>
-                    <a class="nav-link" data-view="map" data-i18n="nav_map">地图</a>
+                    <a class="nav-link" data-view="help" data-i18n="nav_help">帮助</a>
                     <a class="nav-link" data-view="announcements" data-i18n="nav_announcements">公告</a>
                     <a class="nav-link" data-view="sponsors" data-i18n="nav_sponsors">其他</a>
                     <div class="nav-indicator" id="navIndicator"></div>
@@ -1241,6 +1398,7 @@
             <div class="nav-right">
                 <div class="settings-mini">
                     <button class="icon-btn" id="darkModeBtn" title="主题模式" type="button">🌗</button>
+                    <button class="icon-btn" id="glassBtn" title="毛玻璃画质档位" type="button">🧊</button>
                     <button class="icon-btn" id="langBtn" title="语言切换" type="button">🌐</button>
                     <button class="icon-btn" id="forceRefreshBtn" title="强制刷新" type="button">🔄</button>
                 </div>
@@ -1250,7 +1408,7 @@
         <!-- 离线提示条 -->
         <div class="offline-banner" id="offlineBanner">📡 当前处于离线模式，正在展示缓存内容</div>
 
-        <!-- 地址提示条（放大服务器地址） -->
+        <!-- 地址提示条 -->
         <div class="addr-banner glass">
             <div class="addr-left">
                 <span class="addr-icon">🎮</span>
@@ -1307,7 +1465,7 @@
                     </div>
                 </div>
 
-                <!-- ★ 在线玩家折叠列表（仅在 API 返回 players.list 时显示） -->
+                <!-- 在线玩家折叠列表（仅在 API 返回 players.list 时显示） -->
                 <div class="player-list-card glass" id="playerListCard" style="display:none;">
                     <div class="player-list-head" id="playerListToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="playerListBody">
                         <div class="pl-left">
@@ -1324,36 +1482,46 @@
             </div>
         </div>
 
-        <!-- 地图 -->
-        <div class="view" id="view-map">
+        <!-- ★ 游玩帮助（替换原「地图」视图） -->
+        <div class="view" id="view-help">
             <div class="section-header">
-                <h2>🗺️ <span data-i18n="map_title">服务器地图</span></h2>
-                <div class="map-actions">
-                    <button class="btn btn-ghost btn-sm" id="refreshMapBtn" type="button">🔄 <span data-i18n="refresh">刷新</span></button>
-                    <a class="btn btn-sm" id="openMapBtn" href="https://1.zszzz.cc.cd" target="_blank" rel="noopener noreferrer">
-                        ↗ <span data-i18n="map_open">新标签页打开</span>
-                    </a>
-                </div>
+                <h2>📖 <span data-i18n="help_title">游玩帮助</span></h2>
+                <button class="btn btn-ghost btn-sm" id="refreshHelpBtn" type="button">🔄 <span data-i18n="refresh">刷新</span></button>
             </div>
-            <div class="map-frame-wrap glass">
-                <div class="map-loading" id="mapLoading">
-                    <div class="map-spinner"></div>
-                    <span data-i18n="map_loading">地图加载中...</span>
-                </div>
-                <iframe id="mapFrame" title="服务器地图" allowfullscreen loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+            <div class="help-layout">
+                <aside class="help-sidebar glass">
+                    <div class="help-sidebar-head">
+                        <span>📂</span>
+                        <span data-i18n="help_toc">帮助目录</span>
+                    </div>
+                    <div id="tocContainer"></div>
+                </aside>
+
+                <main class="help-content glass" id="helpContent">
+                    <div class="empty-doc" id="helpEmpty">
+                        <div class="big-icon">👈</div>
+                        <h3 data-i18n="help_empty_title">请从左侧选择帮助文档</h3>
+                        <p data-i18n="help_empty_desc">点击左侧「帮助目录」中的任意节点，即可在此处查看对应的教程内容。</p>
+                    </div>
+                    <div id="docView" style="display: none;">
+                        <div class="content-header">
+                            <div class="content-title" id="docTitle">文档标题</div>
+                            <div class="content-meta" id="docMeta"></div>
+                        </div>
+                        <div class="content-body" id="docContent"></div>
+                    </div>
+                </main>
             </div>
-            <p class="map-tip" data-i18n="map_tip">💡 若地图长时间无法显示，请点击右上角「新标签页打开」。</p>
         </div>
 
-        <!-- 公告（骨架屏占位） -->
+        <!-- 公告 -->
         <div class="view" id="view-announcements">
             <div class="section-header">
                 <h2>📢 <span data-i18n="announcements_title">公告</span> <span class="badge" id="annCountBadge">0</span></h2>
                 <button class="btn btn-ghost btn-sm" id="refreshAnnBtn" type="button">🔄 <span data-i18n="refresh">刷新</span></button>
             </div>
             <div id="announcementsContainer">
-                <!-- 骨架屏 -->
                 <div class="skeleton-group" id="annSkeleton">
                     <div class="skeleton-card">
                         <div class="skeleton skeleton-line title"></div>
@@ -1373,14 +1541,13 @@
             </div>
         </div>
 
-        <!-- 其他（骨架屏占位） -->
+        <!-- 其他 -->
         <div class="view" id="view-sponsors">
             <div class="section-header">
                 <h2>🌟 <span data-i18n="other_title">其他</span> <span class="badge" id="otherCountBadge">0</span></h2>
                 <button class="btn btn-ghost btn-sm" id="refreshOtherBtn" type="button">🔄 <span data-i18n="refresh">刷新</span></button>
             </div>
             <div id="otherContainer">
-                <!-- 骨架屏 -->
                 <div class="skeleton-other-grid" id="otherSkeleton">
                     <div class="skeleton-card">
                         <div class="skeleton-head">
@@ -1450,7 +1617,6 @@
              *  常量配置
              * ============================================================ */
             var FIXED_ADDR = 'zszzz.eu.cc';
-            var MAP_URL    = 'https://1.zszzz.cc.cd';
             var API_BASE   = 'https://api.mcstatus.io/v2/status/java/';
             var BG_APIS    = [
                 'https://www.loliapi.com/acg/',
@@ -1460,12 +1626,13 @@
             var QUOTE_API = 'https://api.xygeng.cn/one';
             var ANNOUNCEMENT_SOURCES = ['announcements.json'];
             var OTHER_SOURCES = ['other.json'];
+            var TOC_URL = './toc.json';
             var GROUP_ICONS = { friends: '🔗', team: '👥', sponsor: '☕', items: '✨' };
 
-            /* 主题：auto / dark / light —— auto 时按访问者本地时间判断 */
             var THEME_KEY = 'themeMode';
-            var THEME_DARK_FROM = 18;   // 18:00 起进入深色
-            var THEME_DARK_TO   = 6;    // 06:00 起回到亮色
+            var GLASS_KEY = 'glassLevel';
+            var THEME_DARK_FROM = 18;
+            var THEME_DARK_TO   = 6;
 
             var FALLBACK_QUOTES = [
                 "愿你今天的每一分钟，都藏着小惊喜。",
@@ -1485,7 +1652,7 @@
              * ============================================================ */
             var i18n = {
                 zh: {
-                    brand: "无名小服", nav_home: "主页", nav_map: "地图",
+                    brand: "无名小服", nav_home: "主页", nav_help: "帮助",
                     nav_announcements: "公告", nav_sponsors: "其他",
                     monitor_title: "服务器性能监控", refresh: "刷新", copy: "📋 复制",
                     copy_success: "✅ 已复制!", copy_fail: "复制失败，请手动复制",
@@ -1500,18 +1667,36 @@
                     empty_other_desc: "暂时没有可显示的内容，请稍后再来看看吧~",
                     visit: "访问", unnamed: "未命名",
                     type_friend: "友情链接", type_sponsor: "赞助支持", type_tool: "工具", type_other: "其他",
-                    map_title: "服务器地图", map_open: "新标签页打开",
-                    map_loading: "地图加载中...",
-                    map_tip: "💡 若地图长时间无法显示，请点击右上角「新标签页打开」。",
                     first_visit_title: "🎉 欢迎访问无名小服",
                     first_visit_text: "欢迎访问无名小服官网 · QQ交流群：1083805903",
                     first_visit_btn: "我知道了", err_offline: "无法连接到服务器",
                     theme_auto: "🌗 主题：自动（18:00–06:00 深色）",
                     theme_dark: "🌙 主题：深色",
-                    theme_light: "☀️ 主题：浅色"
+                    theme_light: "☀️ 主题：浅色",
+                    glass_high: "🧊 毛玻璃：高（模糊 20px）",
+                    glass_medium: "🧊 毛玻璃：中（模糊 12px）",
+                    glass_low: "🧊 毛玻璃：低（已关闭模糊）",
+                    glass_high_t: "毛玻璃档位：高（自动检测）",
+                    glass_medium_t: "毛玻璃档位：中（自动检测）",
+                    glass_low_t: "毛玻璃档位：低（自动检测）",
+                    /* 帮助模块 */
+                    help_title: "游玩帮助",
+                    help_toc: "帮助目录",
+                    help_empty_title: "请从左侧选择帮助文档",
+                    help_empty_desc: "点击左侧「帮助目录」中的任意节点，即可在此处查看对应的教程内容。",
+                    help_unnamed: "未命名",
+                    help_no_toc: "未读取到 toc.json",
+                    help_reading: "正在读取文档内容...",
+                    help_no_content: "无",
+                    help_no_content_prefix: "未读取到「",
+                    help_no_content_suffix: "」的文档内容",
+                    help_meta_id: "标识",
+                    help_meta_updated: "更新",
+                    help_meta_default: "无名小服 · 游玩帮助",
+                    help_refreshed: "✅ 帮助目录已刷新"
                 },
                 en: {
-                    brand: "Nameless Server", nav_home: "Home", nav_map: "Map",
+                    brand: "Nameless Server", nav_home: "Home", nav_help: "Guide",
                     nav_announcements: "News", nav_sponsors: "Other",
                     monitor_title: "Server Performance Monitor", refresh: "Refresh", copy: "📋 Copy",
                     copy_success: "✅ Copied!", copy_fail: "Copy failed",
@@ -1527,15 +1712,32 @@
                     empty_other_desc: "There is no content yet. Please check back later.",
                     visit: "Visit", unnamed: "Unnamed",
                     type_friend: "Friend Link", type_sponsor: "Sponsor", type_tool: "Tool", type_other: "Other",
-                    map_title: "Server Map", map_open: "Open in new tab",
-                    map_loading: "Loading map...",
-                    map_tip: "💡 If the map doesn't load, use \"Open in new tab\" at the top right.",
                     first_visit_title: "🎉 Welcome to Nameless Server",
                     first_visit_text: "Welcome to Nameless Server · QQ Group: 1083805903",
                     first_visit_btn: "Got it", err_offline: "Cannot connect to server",
                     theme_auto: "🌗 Theme: Auto (dark 18:00–06:00)",
                     theme_dark: "🌙 Theme: Dark",
-                    theme_light: "☀️ Theme: Light"
+                    theme_light: "☀️ Theme: Light",
+                    glass_high: "🧊 Glass: High (blur 20px)",
+                    glass_medium: "🧊 Glass: Medium (blur 12px)",
+                    glass_low: "🧊 Glass: Low (blur off)",
+                    glass_high_t: "Glass level: High (auto)",
+                    glass_medium_t: "Glass level: Medium (auto)",
+                    glass_low_t: "Glass level: Low (auto)",
+                    help_title: "Play Guide",
+                    help_toc: "Guide Contents",
+                    help_empty_title: "Select a document on the left",
+                    help_empty_desc: "Click any node in the guide contents to read the tutorial here.",
+                    help_unnamed: "Untitled",
+                    help_no_toc: "toc.json not found",
+                    help_reading: "Loading document...",
+                    help_no_content: "N/A",
+                    help_no_content_prefix: "No document content found for 「",
+                    help_no_content_suffix: "」",
+                    help_meta_id: "ID",
+                    help_meta_updated: "Updated",
+                    help_meta_default: "Nameless Server · Play Guide",
+                    help_refreshed: "✅ Guide contents refreshed"
                 }
             };
 
@@ -1543,7 +1745,7 @@
             var announcementsData = [];
             var otherGroups = [];
             var usingOfflineCache = false;
-            var currentBgSrc = null;   // 已加载的背景图地址（主题切换时复用）
+            var currentBgSrc = null;
 
             /* ============================================================
              *  工具函数
@@ -1613,7 +1815,7 @@
             };
 
             /* ============================================================
-             *  离线缓存（localStorage + Cache API）
+             *  离线缓存
              * ============================================================ */
             var DataCache = {
                 PREFIX: 'zszzz_cache_',
@@ -1623,7 +1825,6 @@
                         if (!raw) return null;
                         var obj = JSON.parse(raw);
                         if (obj && obj.data) {
-                            // 超过 7 天的缓存丢弃
                             var age = Date.now() - (obj.time || 0);
                             if (age > 7 * 24 * 60 * 60 * 1000) return null;
                             return obj.data;
@@ -1638,38 +1839,23 @@
                             time: Date.now()
                         }));
                     } catch (e) {
-                        // localStorage 满了，清理旧缓存
                         try {
                             var toRemove = [];
                             for (var i = 0; i < localStorage.length; i++) {
                                 var k = localStorage.key(i);
                                 if (k && k.indexOf(this.PREFIX) === 0) toRemove.push(k);
                             }
-                            // 删除最早的几个
                             toRemove.slice(0, 3).forEach(function(k) {
                                 try { localStorage.removeItem(k); } catch (e2) {}
                             });
                         } catch (e3) {}
                     }
-                },
-                clear: function() {
-                    try {
-                        var toRemove = [];
-                        for (var i = 0; i < localStorage.length; i++) {
-                            var k = localStorage.key(i);
-                            if (k && k.indexOf(this.PREFIX) === 0) toRemove.push(k);
-                        }
-                        toRemove.forEach(function(k) {
-                            try { localStorage.removeItem(k); } catch (e) {}
-                        });
-                    } catch (e) {}
                 }
             };
 
-            /* 尝试用 Cache API 缓存静态资源 */
             function cacheStaticAssets() {
                 if (!('caches' in window)) return;
-                var ASSETS = ['./', './announcements.json', './other.json'];
+                var ASSETS = ['./', './announcements.json', './other.json', './toc.json'];
                 try {
                     caches.open('zszzz-static-v1').then(function(cache) {
                         ASSETS.forEach(function(url) {
@@ -1684,16 +1870,13 @@
                 } catch (e) {}
             }
 
-            /* 尝试注册 sw.js（若用户放置了此文件） */
             function registerServiceWorker() {
                 if (!('serviceWorker' in navigator)) return;
                 if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
                 try {
                     navigator.serviceWorker.register('sw.js').then(function(reg) {
                         console.log('[SW] 已注册，作用域：', reg.scope);
-                    }).catch(function() {
-                        // 未提供 sw.js，忽略
-                    });
+                    }).catch(function() {});
                 } catch (e) {}
             }
 
@@ -1721,6 +1904,7 @@
                 latencyValue: $('latencyValue'), versionValue: $('versionValue'),
                 motdValue: $('motdValue'), serverIcon: $('serverIcon'),
                 refreshServersBtn: $('refreshServersBtn'), darkBtn: $('darkModeBtn'),
+                glassBtn: $('glassBtn'),
                 langBtn: $('langBtn'), forceRefreshBtn: $('forceRefreshBtn'),
                 firstVisitConfirm: $('firstVisitConfirm'), firstVisitModal: $('firstVisitModal'),
                 copyFixedAddrBtn: $('copyFixedAddrBtn'),
@@ -1728,12 +1912,16 @@
                 refreshAnnBtn: $('refreshAnnBtn'),
                 otherContainer: $('otherContainer'), otherCountBadge: $('otherCountBadge'),
                 refreshOtherBtn: $('refreshOtherBtn'),
-                mapFrame: $('mapFrame'), mapLoading: $('mapLoading'), refreshMapBtn: $('refreshMapBtn'),
                 timeCard: $('timeCard'), timeGreeting: $('timeGreeting'),
                 timeClock: $('timeClock'), timeDate: $('timeDate'), dailyQuote: $('dailyQuote'),
                 navLinks: $('navLinks'), navIndicator: $('navIndicator'),
                 playerListCard: $('playerListCard'), playerListToggle: $('playerListToggle'),
-                playerListGrid: $('playerListGrid'), playerListCount: $('playerListCount')
+                playerListGrid: $('playerListGrid'), playerListCount: $('playerListCount'),
+                /* 帮助 */
+                tocContainer: $('tocContainer'), helpEmpty: $('helpEmpty'),
+                docView: $('docView'), docTitle: $('docTitle'),
+                docMeta: $('docMeta'), docContent: $('docContent'),
+                refreshHelpBtn: $('refreshHelpBtn')
             };
 
             /* ============================================================
@@ -1803,7 +1991,7 @@
             }
 
             /* ============================================================
-             *  随机背景（主题切换时可重新叠加遮罩）
+             *  随机背景
              * ============================================================ */
             function applyBackground() {
                 if (!currentBgSrc) return;
@@ -2077,7 +2265,6 @@
                         d.serverIcon.removeAttribute('src');
                     }
 
-                    /* ★ 玩家列表：仅当 API 返回 players.list 时才展示 */
                     renderPlayerList(isOnline ? normalizePlayers(status.playerList) : []);
 
                     if (showToastMsg) {
@@ -2136,16 +2323,10 @@
                 return [];
             }
 
-            /**
-             * 网络优先 → 失败读缓存。
-             * @param {Array} urls 候选 URL 列表
-             * @param {String} cacheKey 缓存 key（用于 localStorage）
-             */
             function fetchFirstJson(urls, cacheKey) {
                 return new Promise(function(resolve) {
                     function tryNext(i) {
                         if (i >= urls.length) {
-                            // 网络全部失败，尝试缓存
                             if (cacheKey) {
                                 var cached = DataCache.get(cacheKey);
                                 if (cached) {
@@ -2277,6 +2458,206 @@
             }
 
             /* ============================================================
+             *  ★ 游玩帮助模块
+             * ============================================================ */
+            var tocData = null;
+            var helpLoaded = false;
+            var helpLoading = false;
+
+            function normalizeToc(json) {
+                if (!json) return null;
+                var list = null;
+                if (Array.isArray(json)) list = json;
+                else if (Array.isArray(json.toc)) list = json.toc;
+                else if (Array.isArray(json.items)) list = json.items;
+                else if (Array.isArray(json.data)) list = json.data;
+                else if (Array.isArray(json.children)) list = json.children;
+                if (!list) return null;
+
+                function walk(arr) {
+                    return arr.filter(function(x) { return x && typeof x === 'object'; })
+                              .map(function(item) {
+                        var node = {
+                            title: String(item.title || item.name || t('help_unnamed')),
+                            type: item.type || 'DOC',
+                            url: item.url || '',
+                            content: item.content || '',
+                            date: item.date || item.updated_at || '',
+                            children: []
+                        };
+                        var kids = item.children || item.items || item.docs;
+                        if (Array.isArray(kids) && kids.length > 0) {
+                            node.children = walk(kids);
+                        }
+                        return node;
+                    });
+                }
+                return walk(list);
+            }
+
+            function loadTocAndRender(force) {
+                if (helpLoading) return;
+                helpLoading = true;
+                if (d.tocContainer && (!tocData || force)) {
+                    d.tocContainer.innerHTML = '<div class="toc-empty">' +
+                        '<span class="big-icon">⏳</span><div>' + escapeHtml(t('loading')) + '</div></div>';
+                }
+                fetch(TOC_URL + '?_t=' + Date.now(), { cache: 'no-cache' })
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res.json();
+                    })
+                    .then(function(json) {
+                        tocData = normalizeToc(json);
+                    })
+                    .catch(function() {
+                        tocData = null;
+                    })
+                    .then(function() {
+                        helpLoading = false;
+                        renderToc();
+                    });
+            }
+
+            function ensureHelpLoaded() {
+                if (helpLoaded) return;
+                helpLoaded = true;
+                loadTocAndRender(false);
+            }
+
+            function renderToc() {
+                if (!d.tocContainer) return;
+                if (!tocData || tocData.length === 0) { renderEmptyToc(); return; }
+                d.tocContainer.innerHTML = '';
+                renderTree(tocData, d.tocContainer, 0);
+            }
+
+            function renderEmptyToc() {
+                d.tocContainer.innerHTML =
+                    '<div class="toc-empty">' +
+                        '<span class="big-icon">📭</span>' +
+                        '<div>' + escapeHtml(t('help_no_content')) + '</div>' +
+                        '<div style="font-size:0.78rem;opacity:0.7;margin-top:6px;">' + escapeHtml(t('help_no_toc')) + '</div>' +
+                    '</div>';
+            }
+
+            function renderTree(nodes, container, level) {
+                level = level || 0;
+                nodes.forEach(function(node) {
+                    var hasChildren = node.children && node.children.length > 0;
+                    var nodeEl = document.createElement('div');
+                    nodeEl.className = 'tree-node' + (hasChildren ? '' : ' leaf-node');
+
+                    var headerEl = document.createElement('div');
+                    headerEl.className = 'tree-header';
+
+                    var arrow = document.createElement('span');
+                    arrow.className = 'tree-arrow';
+                    arrow.innerHTML = '▶';
+                    headerEl.appendChild(arrow);
+
+                    if (hasChildren) {
+                        headerEl.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            nodeEl.classList.toggle('expanded');
+                        });
+                    } else {
+                        arrow.style.visibility = 'hidden';
+                        headerEl.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            var allHeaders = d.tocContainer.querySelectorAll('.tree-header.active');
+                            Array.prototype.forEach.call(allHeaders, function(el) {
+                                el.classList.remove('active');
+                            });
+                            headerEl.classList.add('active');
+                            loadDocument(node);
+                        });
+                    }
+
+                    var titleSpan = document.createElement('span');
+                    titleSpan.textContent = node.title;
+                    headerEl.appendChild(titleSpan);
+                    nodeEl.appendChild(headerEl);
+
+                    if (hasChildren) {
+                        var childrenEl = document.createElement('div');
+                        childrenEl.className = 'tree-children';
+                        renderTree(node.children, childrenEl, level + 1);
+                        nodeEl.appendChild(childrenEl);
+                        if (level === 0) nodeEl.classList.add('expanded');
+                    }
+
+                    container.appendChild(nodeEl);
+                });
+            }
+
+            function loadDocument(node) {
+                d.helpEmpty.style.display = 'none';
+                d.docView.style.display = 'block';
+
+                d.docTitle.textContent = node.title;
+                var metaParts = [];
+                if (node.url) metaParts.push(t('help_meta_id') + '：' + node.url);
+                if (node.date) metaParts.push(t('help_meta_updated') + '：' + formatDate(node.date));
+                d.docMeta.textContent = metaParts.length ? metaParts.join(' · ') : t('help_meta_default');
+
+                if (node.content && String(node.content).trim() !== '') {
+                    d.docContent.innerHTML = String(node.content);
+                    return;
+                }
+
+                if (!node.url) {
+                    showNoContent(node);
+                    return;
+                }
+
+                d.docContent.innerHTML = '<p style="opacity:0.7;">' + escapeHtml(t('help_reading')) + '</p>';
+
+                fetch('./' + node.url + '.json?_t=' + Date.now(), { cache: 'no-cache' })
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res.json();
+                    })
+                    .then(function(json) {
+                        var content = extractContent(json);
+                        if (!content) return showNoContent(node);
+                        d.docContent.innerHTML = content;
+                        if (json && (json.updated_at || json.date)) {
+                            d.docMeta.textContent = t('help_meta_updated') + '：' + formatDate(json.updated_at || json.date);
+                        }
+                    })
+                    .catch(function() {
+                        showNoContent(node);
+                    });
+            }
+
+            function extractContent(json) {
+                if (!json) return '';
+                if (typeof json === 'string') return json;
+                if (typeof json.content === 'string') return json.content;
+                if (typeof json.body === 'string') return json.body;
+                if (typeof json.html === 'string') return json.html;
+                if (typeof json.text === 'string') return json.text;
+                if (json.data) {
+                    if (typeof json.data === 'string') return json.data;
+                    if (typeof json.data.content === 'string') return json.data.content;
+                    if (typeof json.data.body === 'string') return json.data.body;
+                }
+                return '';
+            }
+
+            function showNoContent(node) {
+                d.docContent.innerHTML =
+                    '<div style="text-align:center;padding:60px 20px;opacity:0.75;">' +
+                        '<div style="font-size:3rem;margin-bottom:12px;">📄</div>' +
+                        '<div style="font-weight:700;font-size:1.05rem;margin-bottom:6px;">' + escapeHtml(t('help_no_content')) + '</div>' +
+                        '<div style="font-size:0.85rem;">' +
+                            escapeHtml(t('help_no_content_prefix')) + escapeHtml(node.title) + escapeHtml(t('help_no_content_suffix')) +
+                        '</div>' +
+                    '</div>';
+            }
+
+            /* ============================================================
              *  视图切换
              * ============================================================ */
             var updateIndicator = rafThrottle(function() {
@@ -2352,36 +2733,35 @@
                 });
                 requestAnimationFrame(updateIndicator);
 
-                if (viewName === 'map') ensureMapLoaded();
+                if (viewName === 'help') ensureHelpLoaded();
             }
 
             /* ============================================================
-             *  地图
+             *  ★ 毛玻璃档位控制
              * ============================================================ */
-            var mapLoaded = false, mapLoadingTimer = null;
-            function showMapLoading(timeout) {
-                timeout = timeout || 9000;
-                if (!d.mapLoading) return;
-                d.mapLoading.classList.remove('hidden');
-                clearTimeout(mapLoadingTimer);
-                mapLoadingTimer = setTimeout(function() {
-                    d.mapLoading.classList.add('hidden');
-                }, timeout);
+            var GLASS_ICONS = { high: '✨', medium: '🧊', low: '⬜' };
+
+            function currentGlassLevel() {
+                return document.documentElement.getAttribute('data-glass') || 'medium';
             }
-            function ensureMapLoaded() {
-                if (mapLoaded) return;
-                mapLoaded = true;
-                showMapLoading();
-                d.mapFrame.src = MAP_URL;
+
+            function updateGlassBtn(level) {
+                if (!d.glassBtn) return;
+                d.glassBtn.textContent = GLASS_ICONS[level] || '🧊';
+                d.glassBtn.title = t('glass_' + level + '_t');
             }
-            function reloadMap() {
-                showMapLoading();
-                d.mapFrame.src = 'about:blank';
-                setTimeout(function() { d.mapFrame.src = MAP_URL; }, 120);
+
+            function cycleGlass() {
+                var cur = currentGlassLevel();
+                var next = cur === 'high' ? 'medium' : (cur === 'medium' ? 'low' : 'high');
+                try { localStorage.setItem(GLASS_KEY, next); } catch (e) {}
+                document.documentElement.setAttribute('data-glass', next);
+                updateGlassBtn(next);
+                showToast(t('glass_' + next));
             }
 
             /* ============================================================
-             *  ★ 主题：自动（跟随访问者时间）/ 深色 / 浅色
+             *  主题：自动 / 深色 / 浅色
              * ============================================================ */
             var THEME_ICONS = { auto: '🌗', dark: '🌙', light: '☀️' };
 
@@ -2390,7 +2770,6 @@
                 return (m === 'dark' || m === 'light' || m === 'auto') ? m : 'auto';
             }
 
-            /* 本地时间判断：18:00 ~ 05:59 为深色 */
             function getAutoDark() {
                 var h = new Date().getHours();
                 return (h >= THEME_DARK_FROM || h < THEME_DARK_TO);
@@ -2413,7 +2792,6 @@
                 applyBackground();
             }
 
-            /* 三态循环：自动 → 深色 → 浅色 → 自动 */
             function cycleTheme() {
                 var mode = getThemeMode();
                 var next = mode === 'auto' ? 'dark' : (mode === 'dark' ? 'light' : 'auto');
@@ -2422,7 +2800,6 @@
                 showToast(themeTitle(next));
             }
 
-            /* 处于自动模式时，每分钟检查一次是否需要随昼夜切换 */
             function autoThemeCheck() {
                 if (getThemeMode() !== 'auto') return;
                 var shouldDark = getAutoDark();
@@ -2466,6 +2843,10 @@
                     renderOther();
                     renderTimeCard(false);
                     applyTheme();
+                    updateGlassBtn(currentGlassLevel());
+                    /* 帮助目录：若已加载过则重绘（标题文本来自 JSON，无需翻译，仅刷新空状态文案） */
+                    if (tocData) renderToc();
+                    else if (helpLoaded) renderToc();
                     requestAnimationFrame(updateIndicator);
                 }, 500);
             }
@@ -2493,8 +2874,6 @@
 
             /* ============================================================
              *  预加载
-             *  —— 公告与其他内容由 init() 提前发起（earlyAnnP / earlyOtherP），
-             *     这里直接复用同一个 Promise，避免重复请求。
              * ============================================================ */
             function preloadAll(earlyAnnP, earlyOtherP) {
                 var timeoutP = new Promise(function(resolve) { setTimeout(resolve, PRELOAD_TIMEOUT); });
@@ -2524,16 +2903,14 @@
                 currentLang = storage.get('lang') || 'zh';
                 applyI18n(currentLang);
 
-                /* ★ 主题：先按“自动/显式偏好”决定一次（自动=按访问者本地时间） */
                 applyTheme();
+                updateGlassBtn(currentGlassLevel());
 
-                /* ★ 提前并行拉取公告与其他内容：
-                   不等背景图、不等服务器状态，脚本一执行就发出请求，
-                   加载动画期间即可完成渲染。 */
                 var earlyAnnP = loadAnnouncements();
                 var earlyOtherP = loadOther();
 
                 d.darkBtn.addEventListener('click', cycleTheme);
+                if (d.glassBtn) d.glassBtn.addEventListener('click', cycleGlass);
 
                 var navs = document.querySelectorAll('.nav-link[data-view]');
                 Array.prototype.forEach.call(navs, function(link) {
@@ -2557,12 +2934,15 @@
                         showToast('✅ 已刷新');
                     });
                 });
-                d.refreshMapBtn.addEventListener('click', function() {
-                    reloadMap();
-                    showToast('🗺️ 正在重新加载地图');
-                });
+                if (d.refreshHelpBtn) {
+                    d.refreshHelpBtn.addEventListener('click', function() {
+                        tocData = null;
+                        helpLoaded = true;
+                        loadTocAndRender(true);
+                        showToast(t('help_refreshed'));
+                    });
+                }
 
-                /* ★ 在线玩家列表：点击 / 键盘展开收起 */
                 if (d.playerListToggle) {
                     d.playerListToggle.addEventListener('click', togglePlayerList);
                     d.playerListToggle.addEventListener('keydown', function(e) {
@@ -2573,18 +2953,10 @@
                     });
                 }
 
-                d.mapFrame.addEventListener('load', function() {
-                    var src = d.mapFrame.getAttribute('src') || '';
-                    if (!src || src === 'about:blank') return;
-                    clearTimeout(mapLoadingTimer);
-                    d.mapLoading.classList.add('hidden');
-                });
-
                 d.langBtn.addEventListener('click', switchLanguage);
                 d.forceRefreshBtn.addEventListener('click', function() { location.reload(); });
                 d.firstVisitConfirm.addEventListener('click', closeFirstVisit);
 
-                // 监听网络恢复
                 window.addEventListener('online', function() {
                     console.log('[网络] 已恢复在线');
                     hideOfflineBanner();
@@ -2598,7 +2970,6 @@
                 window.addEventListener('resize', debounce(updateIndicator, 200), false);
                 window.addEventListener('orientationchange', debounce(updateIndicator, 200), false);
 
-                // 缓存静态资源 & 尝试注册 SW
                 cacheStaticAssets();
                 registerServiceWorker();
 
@@ -2608,8 +2979,9 @@
                     hideLoader();
                     setTimeout(firstVisit, 1200);
                     setInterval(function() { refreshMonitor(false); }, 30000);
-                    /* ★ 每分钟检查一次昼夜自动切换（仅 auto 模式生效） */
                     setInterval(autoThemeCheck, 60000);
+                    /* 帮助目录延后加载，不拖慢首屏 */
+                    setTimeout(ensureHelpLoaded, 1500);
                 });
             }
 
